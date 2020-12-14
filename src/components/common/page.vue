@@ -20,13 +20,14 @@
                   required
                   light
                 )
-              v-btn(class="mt-4" large color='blue darken-2' dark @click='query' :loading='isLoadingQuery') QUERY
+              v-btn(class="mt-4" large color='blue darken-2' @click='query' :loading='isLoadingQuery') QUERY
             v-row
               v-col(:cols="6")
                 v-file-input(v-model="stop_car_file",  solo,  prepend-icon="mdi-email", color="deep-purple accent-4",  label="Upload cars number", placeholder="Upload cars number", outlined)
               v-btn(class="mt-4 me-2", large color='blue darken-2' :disabled='stop_car_file.length === 0', @click="run" :loading='isLoadingRun') RUN
               v-btn(class="mt-4 me-2", large color='blue darken-2' :disabled='stop_car_file.length === 0', @click="stop") STOP
-              v-btn(class="mt-4", large color='blue darken-2' :disabled='stop_car_file.length === 0', @click="exportExcel") EXPORT
+              download-excel(:data="data" type="csv" name="stop_car_query.csv")
+                v-btn(class="mt-4" large color='blue darken-2' :disabled='data.length === 0') EXPORT
           v-data-table(:headers="headers", :items="data", class="elevation-1")
           v-dialog(v-model='progress', persistent, width='200px')
             div(class="text-center")
@@ -77,9 +78,6 @@ export default {
 
     },
     stop () {
-
-    },
-    exportExcel () {
 
     },
   },
