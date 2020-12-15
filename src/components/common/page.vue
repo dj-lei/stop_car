@@ -14,7 +14,6 @@
                   outlined
                   label="carNumber"
                   placeholder="carNumber"
-                  prepend-inner-icon='mdi-arrow-up-bold-box-outline'
                   background-color='white'
                   color='blue darken-2'
                   required
@@ -23,11 +22,12 @@
               v-btn(class="mt-4" large color='blue darken-2' @click='query' :loading='isLoadingQuery') QUERY
             v-row
               v-col(:cols="6")
-                v-file-input(v-model="stop_car_file",  solo,  prepend-icon="mdi-email", color="deep-purple accent-4",  label="Upload cars number", placeholder="Upload cars number", outlined)
+                v-file-input(v-model="stop_car_file",  solo,  prepend-icon="mdi-arrow-up-bold-box-outline", color="deep-purple accent-4",  label="Upload cars number", placeholder="Upload cars number", outlined)
               v-btn(class="mt-4 me-2", large color='blue darken-2' :disabled='stop_car_file.length === 0', @click="run" :loading='isLoadingRun') RUN
-              v-btn(class="mt-4 me-2", large color='blue darken-2' :disabled='stop_car_file.length === 0', @click="stop") STOP
+              //- v-btn(class="mt-4 me-2", large color='blue darken-2' :disabled='data.length === 0', @click="stop") STOP
               download-excel(:data="data" type="csv" name="stop_car_query.csv")
-                v-btn(class="mt-4" large color='blue darken-2' :disabled='data.length === 0') EXPORT
+                v-btn(class="mt-4 me-2" large color='blue darken-2' :disabled='data.length === 0') EXPORT
+              v-btn(class="mt-4 me-2", large color='blue darken-2' :disabled='data.length === 0', @click="clear") CLEAR
           v-data-table(:headers="headers", :items="data", class="elevation-1")
           v-dialog(v-model='progress', persistent, width='200px')
             div(class="text-center")
@@ -51,12 +51,13 @@ export default {
     return {
       isLoadingQuery: false,
       isLoadingRun: false,
+      isStop: false,
       carNumber: '',
       stop_car_file: [],
       headers: [
         { text: 'CarNumber', value: 'CarNumber' },
         { text: 'ETCP', value: 'ETCP'},
-        { text: '截停车', value: 'JIETINGCHE' },
+        { text: '停哪儿', value: 'StopWhere' },
       ],
       data: [],
     }
@@ -66,19 +67,35 @@ export default {
       this.isLoadingQuery = true
       await this.$http.get(this.$urls.stop_car_query, {
         params: {
-            car_number: 'car_number',
+            car_number: this.carNumber,
         },
         })
         .then(response => {
-          this.data = response.data.content
+          this.data.push(response.data.content)
           this.isLoadingQuery = false
         })
     },
-    run () {
+    async run () {
+      this.$store.set('progress', true)
+      let formData = new FormData()
+      formData.append("file", this.stop_car_file);
+      let config = {
+        headers: {
+        'Content-Type': 'multipart/form-data'
+        }
+      }
 
+      await this.$http.post(this.$urls.stop_car_run, formData, config).then(
+        (response)=>{
+        setTimeout(() =>{
+          this.data = response.data.content
+          this.$store.set('progress', false)
+        },1000)
+      }, (error) => {
+      })
     },
-    stop () {
-
+    clear () {
+      this.data = []
     },
   },
 }
