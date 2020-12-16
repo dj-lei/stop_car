@@ -14,6 +14,6 @@ from ru.config.platform_params import *
 
 profile = os.environ.get('env', 'develop')
 if profile == 'product':
-    redis_addr = "http://127.0.0.1:5010"
+    redis_addr = "http://121.41.42.251:5010"
 else:
-    redis_addr = "http://127.0.0.1:5010"
+    redis_addr = "http://121.41.42.251:5010"

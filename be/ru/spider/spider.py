@@ -3,11 +3,11 @@ from ru.views import *
 
 
 def get_proxy():
-    return requests.get("http://127.0.0.1:5010/get/").json()
+    return requests.get("http://121.41.42.251:5010/get/").json()
 
 
 def delete_proxy(proxy):
-    requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
+    requests.get("http://121.41.42.251:5010/delete/?proxy={}".format(proxy))
 
 
 def get_html(url, headers, params, proxy, request_type='GET'):

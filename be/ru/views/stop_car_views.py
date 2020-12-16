@@ -39,7 +39,7 @@ def run(request):
 
                 stop_where_body['REQUESTS'][0]['REQ_COMM_DATA']['car_id'] = car_number[0][:-5]
                 response_stop_where = get_html(stop_where_url, stop_where_headers, stop_where_body, proxy, request_type='POST')
-                print(index, car_number[0])
+                print(index, car_number[0], response_etcp.content.decode(), response_stop_where.content.decode())
                 result.append({'CarNumber': car_number[0], 'ETCP': response_etcp.content.decode(), 'StopWhere': response_stop_where.content.decode()})
             return JsonResponse({'content': result})
     except Exception as e:
