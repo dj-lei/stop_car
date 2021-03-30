@@ -1,19 +1,14 @@
-<template>
-  <div id="app">
-    <v-app id="inspire">
-      <Page>
-      </Page>
-    </v-app>
-  </div>
+<template lang="pug">
+  div(id="app")
+    v-app(id="inspire")
+      v-main(ref='content')
+        v-container
+          <router-view></router-view>
 </template>
 
 <script>
-import Page from './components/common/page'
 
 export default {
-  components: {
-    Page
-  },
   data () {
     return {
     }
