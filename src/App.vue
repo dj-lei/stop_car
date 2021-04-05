@@ -2,8 +2,8 @@
   div(id="app")
     v-app(id="inspire")
       v-main(ref='content')
-        v-container
-          <router-view></router-view>
+        //- v-card(min-width="1200px", min-height="1000px")
+        <router-view></router-view>
 </template>
 
 <script>

@@ -1,61 +1,62 @@
 <template lang="pug">
   v-app
-    v-card
-      v-card-title
-        span {{ "登录" }}
-      v-card-text
-        v-alert(
-          v-model='errorShown'
-          transition='slide-y-reverse-transition'
-          color='red darken-2'
-          tile
-          dark
-          dense
-          icon='mdi-alert'
-        ) {{ errorMsg }}
-        template(v-if='screen === `login`')
-          v-text-field(
-            ref="username"
-            v-model="username"
-            flat
-            outlined
-            :rules="[() => !!username || '请输入用户名!']"
-            label="用户名"
-            placeholder="用户名"
-            prepend-inner-icon='mdi-clipboard-account'
-            background-color='white'
-            color='blue darken-2'
-            required
-            light
-          )
-          v-text-field(
-            ref="password"
-            v-model='password'
-            flat
-            outlined
-            :rules="[() => !!password || '请输入密码!']"
-            prepend-inner-icon='mdi-clipboard-account'
-            background-color='white'
-            color='blue darken-2'
-            type="password"
-            label="密码"
-            placeholder='密码'
-            required
-            light
-            @keyup.enter='login'
-            )
-          v-spacer(class="mt-8")
-          v-btn(
-              width='100%'
-              large
+    v-row
+      v-spacer
+      v-card(min-width="500px" max-height="350px")
+        v-card-title
+          span {{ "登录" }}
+        v-card-text
+          v-alert(
+            v-model='errorShown'
+            transition='slide-y-reverse-transition'
+            color='red darken-2'
+            tile
+            dark
+            dense
+            icon='mdi-alert'
+          ) {{ errorMsg }}
+          template(v-if='screen === `login`')
+            v-text-field(
+              ref="username"
+              v-model="username"
+              flat
+              outlined
+              :rules="[() => !!username || '请输入用户名!']"
+              label="用户名"
+              placeholder="用户名"
+              prepend-inner-icon='mdi-clipboard-account'
+              background-color='white'
               color='blue darken-2'
-              dark
-              @click='login'
-              :loading='isLoading'
-              ) 登录
-    v-snackbar(v-model="snackbar", :timeout="timeout") {{ info }}
-      template(v-slot:action="{ attrs }")
-        v-btn(color="blue", text, v-bind="attrs", @click="snackbar = false") Close
+              required
+              light
+            )
+            v-text-field(
+              ref="password"
+              v-model='password'
+              flat
+              outlined
+              :rules="[() => !!password || '请输入密码!']"
+              prepend-inner-icon='mdi-clipboard-account'
+              background-color='white'
+              color='blue darken-2'
+              type="password"
+              label="密码"
+              placeholder='密码'
+              required
+              light
+              @keyup.enter='login'
+              )
+            v-spacer(class="mt-8")
+            v-btn(
+                width='100%'
+                large
+                color='blue darken-2'
+                dark
+                @click='login'
+                :loading='isLoading'
+                ) 登录
+            v-spacer(class="mt-")
+      v-spacer
 </template>
 
 <script>
@@ -71,6 +72,7 @@ export default {
       snackbar: false,
       errorMsg: '',
       info: '',
+      screen_height: document.body.offsetHeight - 120,
       timeout: 4000,
     }
   },
