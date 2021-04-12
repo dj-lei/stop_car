@@ -29,18 +29,31 @@
             //- download-excel(:data="data" type="csv" name="stop_car_query.csv")
               v-btn(class="mt-4 me-2" large color='blue darken-2' :disabled='data.length === 0') EXPORT
               v-btn(class="mt-4 me-2", large color='blue darken-2' :disabled='data.length === 0', @click="clear") CLEAR
-        v-data-table(:headers="headers", :items="data", sort-by="comeTime", sort-desc class="elevation-1")
-          template(v-slot:item.img="{ item }")
-            v-img(max-height="150" max-width="250" :src="item.img")
-          template(v-slot:item.actions="{ item }")
-            v-tooltip(bottom)
-              template(v-slot:activator="{ on,attrs }")
-                v-icon(small, class="mr-2", v-bind="attrs", v-on="on", @click="history_query(item)") mdi-history
-              span 历史记录
-            v-tooltip(bottom)
-              template(v-slot:activator="{ on,attrs }")
-                v-icon(small, class="mr-2", v-bind="attrs", v-on="on", @click="copy_info(item)") mdi-content-copy
-              span 车辆详情
+          v-row
+            v-col(:cols="6")
+              v-menu(v-model="pick_time" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y min-width="auto")
+                template(v-slot:activator="{ on, attrs }")
+                  v-text-field(v-model="date" label="限制时间" prepend-icon="mdi-calendar" clearable readonly v-bind="attrs" v-on="on")
+                v-date-picker(v-model="date" locale="zh-cn" no-title scrollable @input="pick_time = false")
+        v-card
+          v-card-title
+            v-text-field(v-model="search" label="Search" single-line hide-details)
+          v-data-table(:search="search" :headers="headers", :items="data", sort-by="comeTime", sort-desc class="elevation-1")
+            template(v-slot:item.img="{ item }")
+              v-img(max-height="150" max-width="250" :src="item.img")
+            template(v-slot:item.actions="{ item }")
+              v-tooltip(bottom)
+                template(v-slot:activator="{ on,attrs }")
+                  v-icon(small, class="mr-2", v-bind="attrs", v-on="on", @click="history_query(item)") mdi-history
+                span 历史记录
+              v-tooltip(bottom)
+                template(v-slot:activator="{ on,attrs }")
+                  v-icon(small, class="mr-2", v-bind="attrs", v-on="on", @click="detail_query(item)") mdi-content-copy
+                span 车辆详情
+              v-tooltip(bottom)
+                template(v-slot:activator="{ on,attrs }")
+                  v-icon(small, class="mr-2", v-bind="attrs", v-on="on", @click="hide_car(item)") mdi-delete
+                span 隐藏该车
         v-dialog(v-model='dialogDetail', max-width="600px")
           v-card
             v-simple-table(dense)
@@ -53,6 +66,15 @@
                   tr(v-for="item in detail" :key="item.name")
                     td {{ item.name }}
                     td {{ item.value }}
+            v-text-field(id="id_text" :value="detail_copy")
+            v-spacer(class="mt-8")
+              v-btn(
+                width='100%'
+                large
+                color='blue darken-2'
+                dark
+                @click='copy_info'
+                ) 复制车辆信息
         v-dialog(v-model='dialogHistory', max-width="600px")
           v-card
             v-simple-table(dense)
@@ -69,7 +91,7 @@
                     td {{ item.address2 }}
                     td {{ item.comeTime }}
                     td {{ item.leaveTime }}
-        v-snackbar(v-model="snackbar", :timeout="8000") {{ info }}
+        v-snackbar(v-model="snackbar", :timeout="3000") {{ info }}
           template(v-slot:action="{ attrs }")
             v-btn(color="blue", text, v-bind="attrs", @click="snackbar = false") 关闭
 </template>
@@ -91,7 +113,10 @@ export default {
       isLoadingRun: false,
       isStop: false,
       snackbar: false,
+      search:'',
+      pick_time:'',
       carNumber: '',
+      date: '2021-04-01',
       stop_car_file: [],
       interval: '',
       info: '已成功加载车辆信息,并在后台查询,一旦查询成功会自动返回,请耐心等待.',
@@ -109,6 +134,8 @@ export default {
       data: [],
       history: '',
       detail: '',
+      detail_copy: '',
+      hide_pool: [],
     }
   },
   mounted () {
@@ -131,7 +158,8 @@ export default {
         })
         .then(response => {
           let tmp = this.data
-          this.data = response.data.content
+          this.limit_time(response.data.content)
+          this.hide_cars()
           if(tmp.length !== this.data.length){
             let tip = new Audio(tip_sound)
             tip.play()
@@ -146,6 +174,7 @@ export default {
         },
         })
         .then(response => {
+          this.info = '已成功加载车辆信息,并在后台查询,一旦查询成功会自动返回,请耐心等待.'
           this.snackbar = true
         })
     },
@@ -165,6 +194,7 @@ export default {
         (response)=>{
         setTimeout(() =>{
           this.isLoadingRun = false
+          this.info = '已成功加载车辆信息,并在后台查询,一旦查询成功会自动返回,请耐心等待.'
           this.snackbar = true
         },1000)
       }, (error) => {
@@ -182,7 +212,7 @@ export default {
           this.dialogHistory = true
         })
     },
-    async copy_info(item){
+    async detail_query(item){
       await this.$http.get(this.$urls.stop_car_detail, {
         params: {
             username: this.username,
@@ -191,8 +221,44 @@ export default {
         })
         .then(response => {
           this.detail = response.data.content
+          this.combine_info(response.data.content)
           this.dialogDetail = true
         })
+    },
+    hide_car(item){
+      this.hide_pool.push(item.card)
+      this.hide_cars()
+    },
+    hide_cars(){
+      let tmp = []
+      this.data.forEach((elm) => {
+        if(this.hide_pool.indexOf(elm.card) == -1){
+          tmp.push(elm)
+        }
+      })
+      this.data = tmp
+    },
+    limit_time(data){
+      this.data = []
+      data.forEach((elm) => {
+        let date1 = new Date(this.date)
+        let date2 = new Date(elm['comeTime'])
+        if(date2.getTime() >= date1.getTime()){
+          this.data.push(elm)
+        }
+      })
+    },
+    combine_info(data){
+      this.detail_copy = ''
+      data.forEach((elm) => {
+        this.detail_copy = this.detail_copy + elm['name'] + ':' + elm['value'] + ' '  
+      })
+    },
+    copy_info(){
+      document.getElementById('id_text').select()
+      document.execCommand("Copy")
+      this.info = '车辆信息已复制'
+      this.snackbar = true
     },
     logout () {
       clearInterval(this.interval)

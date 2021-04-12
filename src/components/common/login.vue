@@ -55,7 +55,6 @@
                 @click='login'
                 :loading='isLoading'
                 ) 登录
-            v-spacer(class="mt-")
       v-spacer
 </template>
 
